@@ -1,9 +1,6 @@
 # Intro
 COVID map of hospital beds available in Bangalore city.
 
-# Syncing
-Clone this repository using "git clone %REPO_URL%"
-
 # Prerequisites
 Google Cloud API Key with access to Maps JavaScript API, Google Sheets API and Geocoding API.
 Firebase account with a Realtime Database.
