@@ -1,0 +1,31 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Watch via npm",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "watch"],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "env": {
+        "GOOGLE_CLOUD_API_KEY": "",
+        "GOOGLE_SHEETS_SPREADSHEET_ID": "",
+        "FIREBASE_API_KEY": "",
+        "FIREBASE_AUTH_DOMAIN": "",
+        "FIREBASE_DATABASE_URL": "",
+        "FIREBASE_PROJECT_ID": "",
+        "FIREBASE_STORAGE_BUCKET": "",
+        "FIREBASE_MESSAGING_SENDER_ID": "",
+        "FIREBASE_APP_ID": "",
+        "FIREBASE_MEASUREMENT_ID": ""
+      }
+    }
+  ]
+}
