@@ -6,7 +6,7 @@ Google Cloud API Key with access to Maps JavaScript API, Google Sheets API and G
 Firebase account with a Realtime Database.
 Publicly readable Google Sheet with a specific format (see https://docs.google.com/spreadsheets/u/1/d/16alrZU8iaZhnKSvbXcKR2C5r8ohQy7lhUt5Em4WAeYE). Here the sheet id is 16alrZU8iaZhnKSvbXcKR2C5r8ohQy7lhUt5Em4WAeYE.
 
-Configure all the API keys as per src/mustache/config.js
+You need to set the API keys and other configuration as environment variables (see .vscode/launch.json.template). If using Visual Studio Code, rename this file to 'launch.json' after you have added the environment variables to Run through Code.
 
 # Installing
 Run "npm install" in a terminal.
