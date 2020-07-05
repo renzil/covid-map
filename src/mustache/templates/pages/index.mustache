@@ -48,24 +48,21 @@
       firebase.initializeApp(firebaseConfig);
       firebase.analytics();
     </script>
-    <style type="text/css">
-      /* Always set the map height explicitly to define the size of the div
-       * element that contains the map. */
-      #map {
-        height: 100%;
-      }
-
-      /* Optional: Makes the sample page fill the window. */
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-    </style>
     <script>
       (function(exports) {
         "use strict";
+
+        function getPhoneNumber(text) {
+          return text.replace(/\D/g,'');
+        }
+
+        function getPhoneNumberLink(text) {
+          return "tel:" + getPhoneNumber(text);
+        }
+
+        function getGoogleMapsLink(lat, long, placeId) {
+          return "https://www.google.com/maps/search/?api=1&query=" + lat + "," + long + "&query_place_id=" + placeId;
+        }
 
         function getAddressKey(address) {
           address = address.replace(' ', '');
@@ -76,34 +73,51 @@
           return address;
         }
 
-        function addCoordinates(geocoder, map, database, hospitalAddress, hospitalName) {
+        function addMarker(map, position, placeId, hospitalName, hospitalContact, bescomContact, bwssbContact) {
+          var marker = new google.maps.Marker({
+            map: map,
+            position: position,
+            title: hospitalName 
+          });
+          marker.addListener("click", function() {
+            map.setZoom(15);
+            map.setCenter(marker.getPosition());
+
+            $("#hospital-name").text(hospitalName);
+            //$("#hospital-name").attr("href", getGoogleMapsLink(marker.getPosition().lat(), marker.getPosition().lng(), placeId));
+            $("#hospital-contact").text(hospitalContact);
+            $("#hospital-contact").attr("href", getPhoneNumberLink(hospitalContact));
+            $("#bescom-contact").text(bescomContact);
+            $("#bescom-contact").attr("href", getPhoneNumberLink(bescomContact));
+            $("#bwssb-contact").text(bwssbContact);
+            $("#bwssb-contact").attr("href", getPhoneNumberLink(bwssbContact));
+
+            $(".action-ctr").removeClass("d-none");
+            $("#desktop-tutorial").text("Click a contact to call");
+            $("#mobile-tutorial").text("Tap a contact to call");
+          });
+        }
+
+        function addCoordinates(geocoder, map, database, hospitalAddress, hospitalName, hospitalContact, bescomContact, bwssbContact) {
           var coordinates = null;
           var marker = null;
           var addressKey = getAddressKey(hospitalAddress);
           firebase.database().ref('coordinates/'+addressKey).once('value').then(function(snapshot) {
             if (snapshot.exists()) {
               var coordinates = snapshot.val();
-              marker = new google.maps.Marker({
-                map: map,
-                position: {lat: Number(coordinates.lat), lng: Number(coordinates.long)},
-                title: hospitalName 
-              });
+              addMarker(map, {lat: Number(coordinates.lat), lng: Number(coordinates.lng)}, coordinates.placeId, hospitalName, hospitalContact, bescomContact, bwssbContact);
             } else {
               geocoder.geocode( { 'address': hospitalAddress}, function(results, status) {
                 if (status === 'OK') {
                   console.log("Updating database with geocoded result");
                   firebase.database().ref('coordinates/'+addressKey).set({
                     lat: String(results[0].geometry.location.lat()),
-                    long: String(results[0].geometry.location.lng())
+                    lng: String(results[0].geometry.location.lng()),
+                    placeId: String(results[0].place_id)
                   });
 
                   console.log("Adding geocoded result as marker to map");
-                  marker = new google.maps.Marker({
-                    map: map,
-                    position: results[0].geometry.location,
-                    title: hospitalName
-                  });
-
+                  addMarker(map, results[0].geometry.location, results[0].place_id, hospitalName, hospitalContact, bescomContact, bwssbContact);
                 } else {
                   console.error("Geocode was not successful for the following reason: " + status);
                 }
@@ -113,7 +127,7 @@
         }
 
         function initMap() {
-          var myLatLng = {
+          var myLatLng = { // defaults for Bangalore
             lat: 12.9539974,
             lng: 77.6309395
           };
@@ -142,7 +156,7 @@
                     var bescomContact = row.values[3].effectiveValue ? row.values[3].effectiveValue.stringValue : "";
                     var bwssbContact = row.values[4].effectiveValue ? row.values[4].effectiveValue.stringValue : "";
                     
-                    var addCoordResult = addCoordinates(geocoder, map, database, hospitalAddress, hospitalName);
+                    var addCoordResult = addCoordinates(geocoder, map, database, hospitalAddress, hospitalName, hospitalContact, bescomContact, bwssbContact);
                     
                     console.log(hospitalName + " " + hospitalAddress + " " + hospitalContact + " " + bescomContact + " " + bwssbContact + " " + addCoordResult);
                   } catch(err) {
@@ -159,6 +173,18 @@
     </script>
   </head>
   <body>
-    <div id="map"></div>
+    <div class="map-ctr">
+      <div id="map"></div>
+    </div>
+    <div class="tutorial-ctr">
+      <p class="d-block d-md-none" id="mobile-tutorial">Tap a marker to get info</p>
+      <p class="d-none d-md-block" id="desktop-tutorial">Click a marker to get info</p>
+    </div>
+    <div class="action-ctr d-none">
+      <p class="px-4">Hospital Name: <strong><a id="hospital-name" target="_blank"></strong></a></p>
+      <p class="px-4">Hospital Contact: <strong><a id="hospital-contact"></strong></a></p>
+      <p class="px-4">BESCOM Contact: <strong><a id="bescom-contact"></strong></a></p>
+      <p class="px-4">BWSSB Contact: <strong><a id="bwssb-contact"></strong></a></p>
+    </div>
   </body>
 </html>
