@@ -12,7 +12,7 @@
     "copy-external-deps": "cp node_modules/bootstrap/dist/css/bootstrap.min.css dist/css && make-dir dist/js && cp node_modules/jquery/dist/jquery.min.js dist/js && cp node_modules/popper.js/dist/umd/popper.min.js dist/js && cp node_modules/bootstrap/dist/js/bootstrap.min.js dist/js",
     "create-dist": "make-dir dist",
     "assets-cleanup": "rimraf dist/assets.zip",
-    "assets-download": "nwget https://dzongri.s3.ap-south-1.amazonaws.com/story-assets/assets.zip -O dist/assets.zip",
+    "assets-download": "nwget $PUBLIC_ASSETS_URL -O dist/assets.zip",
     "assets-unzip": "decompress dist/assets.zip --out-dir=dist/",
     "watch-dist": "live-server dist --no-browser",
     "watch-html": "nodemon --watch src/mustache --ext '*' --exec \"npm run build-html\"",
