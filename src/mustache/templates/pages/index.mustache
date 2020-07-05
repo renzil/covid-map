@@ -84,7 +84,7 @@
             map.setCenter(marker.getPosition());
 
             $("#hospital-name").text(hospitalName);
-            //$("#hospital-name").attr("href", getGoogleMapsLink(marker.getPosition().lat(), marker.getPosition().lng(), placeId));
+            $("#hospital-name").attr("href", getGoogleMapsLink(marker.getPosition().lat(), marker.getPosition().lng(), placeId));
             $("#hospital-contact").text(hospitalContact);
             $("#hospital-contact").attr("href", getPhoneNumberLink(hospitalContact));
             $("#bescom-contact").text(bescomContact);
@@ -101,13 +101,14 @@
         function addCoordinates(geocoder, map, database, hospitalAddress, hospitalName, hospitalContact, bescomContact, bwssbContact) {
           var coordinates = null;
           var marker = null;
-          var addressKey = getAddressKey(hospitalAddress);
+          var fullHospitalAddress = hospitalName + ", " + hospitalAddress;
+          var addressKey = getAddressKey(fullHospitalAddress);
           firebase.database().ref('coordinates/'+addressKey).once('value').then(function(snapshot) {
             if (snapshot.exists()) {
               var coordinates = snapshot.val();
               addMarker(map, {lat: Number(coordinates.lat), lng: Number(coordinates.lng)}, coordinates.placeId, hospitalName, hospitalContact, bescomContact, bwssbContact);
             } else {
-              geocoder.geocode( { 'address': hospitalAddress}, function(results, status) {
+              geocoder.geocode( { 'address': fullHospitalAddress}, function(results, status) {
                 if (status === 'OK') {
                   console.log("Updating database with geocoded result");
                   firebase.database().ref('coordinates/'+addressKey).set({
