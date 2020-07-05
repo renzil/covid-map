@@ -133,7 +133,9 @@
           };
           var map = new google.maps.Map(document.getElementById("map"), {
             zoom: 11,
-            center: myLatLng
+            center: myLatLng,
+            mapTypeControl: false,
+            streetViewControl: false
           });
           var geocoder = new google.maps.Geocoder();
           var database = firebase.database();
