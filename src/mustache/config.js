@@ -12,7 +12,7 @@ const FIREBASE_MEASUREMENT_ID = process.env.FIREBASE_MEASUREMENT_ID;
 module.exports = {
   "ogtags": false,
   "favicons": false,
-  "fonts": false,
+  "fonts": true,
   "firebase": {
     "apiKey": FIREBASE_API_KEY,
     "authDomain": FIREBASE_AUTH_DOMAIN,
