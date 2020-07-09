@@ -405,7 +405,8 @@
                 var map = new google.maps.Map(document.getElementById("map"), {
                   zoom: 11,
                   center: cityCenter,
-                  disableDefaultUI: true
+                  disableDefaultUI: true,
+                  zoomControl: true
                 });
                 sheet.data.forEach(function(gridData) {
                   gridData.rowData.forEach(function(row, index) {
