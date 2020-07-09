@@ -60,6 +60,8 @@
         var MARKER_UNKNOWN_ICON = "/assets/icons/markers/unknown.png";
         var MARKER_AVAILABLE_ICON = "/assets/icons/markers/available.png";
         var MARKER_UNAVAILABLE_ICON = "/assets/icons/markers/unavailable.png";
+
+        var database = firebase.database();
         
         function getQueryParams() {
           return JSON.parse('{"' + location.search.substring(1).replace(/&/g, '","').replace(/=/g,'":"') + '"}', function(key, value) { return key===""?value:decodeURIComponent(value) });
@@ -105,6 +107,46 @@
           }
         }
 
+        function onUpdateSubmitClick() {
+          $(".update-message").text("Saving ...");
+          firebase.database().ref('metadata/'+getQueryParams()["id"]).update({
+            info: {
+              ventilator: $('.update-ventilator input').is(":checked"),
+              icu: $('.update-icu input').is(":checked"),
+              hdu: $('.update-hdu input').is(":checked")
+            },
+            contact: $('.update-contact input').val()
+          }, function (error) {
+            if (error) {
+              console.error(error);
+              $(".update-message").text("Some error occured, please try again.");
+            } else {
+              $(".update-message").text("The data has been successfully saved.");
+            }
+          });
+        }
+
+        function initUpdateScreen(id) {
+          $(".navbar-brand").attr("href", "#");
+          $(".navbar-title").text("Update");
+
+          $(".update-message").text("");
+
+          firebase.database().ref('metadata/'+id).once('value').then(function(snapshot) {
+            if (snapshot.exists()) {
+              var data = snapshot.val();
+              $(".update-title p").text(data.name ? data.name : "");
+              $(".update-ventilator input").prop("checked", data.info && data.info.ventilator);
+              $(".update-icu input").prop("checked", data.info && data.info.icu);
+              $(".update-hdu input").prop("checked", data.info && data.info.hdu);
+              $(".update-contact input").val(data.contact ? data.contact : "");
+
+              $(".update-submit-button").on("click", onUpdateSubmitClick);
+              $(".update-screen").show();
+            }
+          });
+        }
+
         function reloadUI() {
           hideAllUI();
           var path = window.location.pathname.replace("/", "");
@@ -113,8 +155,7 @@
             initHomeScreen();
             $(".home-screen").show();
           } else if (path === "update") {
-            initUpdateScreen();
-            $(".update-screen").show(getQueryParams()["id"]);
+            initUpdateScreen(getQueryParams()["id"]);
           } else {
             var cityName = path;
             initCityScreen(cityName);
@@ -236,12 +277,12 @@
           marker.addListener("click", onMarkerClick);
         }
 
-        function addCoordinates(geocoder, map, database, address, name, contact, type) {
-          var coordinates = null;
+        function addMetadata(geocoder, map, database, address, name, contact, type) {
+          var metadata = null;
           var marker = null;
           var fullAddress = name + ", " + address;
           var addressKey = getAddressKey(fullAddress);
-          firebase.database().ref('coordinates/'+addressKey).once('value').then(function(snapshot) {
+          firebase.database().ref('metadata/'+addressKey).once('value').then(function(snapshot) {
             if (snapshot.exists()) {
               var data = snapshot.val();
               var meta = {
@@ -255,10 +296,13 @@
               geocoder.geocode( { 'address': fullAddress}, function(results, status) {
                 if (status === 'OK') {
                   console.log("Updating database with geocoded result");
-                  firebase.database().ref('coordinates/'+addressKey).set({
+                  firebase.database().ref('metadata/'+addressKey).set({
                     lat: String(results[0].geometry.location.lat()),
                     lng: String(results[0].geometry.location.lng()),
-                    placeId: String(results[0].place_id)
+                    placeId: String(results[0].place_id),
+                    type: type,
+                    contact: contact,
+                    name: name
                   });
 
                   console.log("Adding geocoded result as marker to map");
@@ -289,13 +333,12 @@
                   lat: 12.9539974,
                   lng: 77.6309395
                 };
+                var geocoder = new google.maps.Geocoder();
                 var map = new google.maps.Map(document.getElementById("map"), {
                   zoom: 11,
                   center: cityCenter,
                   disableDefaultUI: true
                 });
-                var geocoder = new google.maps.Geocoder();
-                var database = firebase.database();
                 sheet.data.forEach(function(gridData) {
                   gridData.rowData.forEach(function(row, index) {
                     if (index < 2) { // header and blank line in spreadsheet
@@ -307,7 +350,7 @@
                       var address = row.values[1].effectiveValue ? row.values[1].effectiveValue.stringValue : "";
                       var contact = row.values[2].effectiveValue ? row.values[2].effectiveValue.stringValue : "";
                       var type = row.values[3].effectiveValue ? row.values[3].effectiveValue.stringValue : "hospital";
-                      addCoordinates(geocoder, map, database, address, name, contact, type);
+                      addMetadata(geocoder, map, database, address, name, contact, type);
                       
                       console.log(name + " " + address + " " + contact + " " + type);
                     } catch(err) {

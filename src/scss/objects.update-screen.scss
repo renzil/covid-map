@@ -1,0 +1,30 @@
+.update-screen {
+  max-width: 600px;
+  .row {
+    margin-top: 10px;
+  }
+  .update-title {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-weight: bolder;
+  }
+  .update-contact {
+    input {
+      border-radius: 2px;
+    }
+  }
+  .update-submit-button {
+    font-weight: bolder;
+    border-radius: 10px;
+    color: white;
+    background-color: $default-theme-action-font-color;
+    border: none;
+    height: 40px;
+    &:hover {
+      background-color: $default-theme-action-font-color * 0.9;
+    }
+  }
+  p {
+    margin-bottom: 0;
+  }
+}

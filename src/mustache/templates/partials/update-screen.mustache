@@ -1,2 +1,37 @@
-<div class="update-screen">
+<div class="update-screen container">
+  <div class="row update-title">
+    <p class="col">Hospital Name</p>
+  </div>
+  <div class="row align-items-center update-ventilator">
+    <p class="col-6">Ventilator</p>
+    <div class="col-6">
+      {{> switch}}
+    </div>
+  </div>
+  <div class="row align-items-center update-icu">
+    <p class="col-6">ICU</p>
+    <div class="col-6">
+      {{> switch}}
+    </div>
+  </div>
+  <div class="row align-items-center update-hdu">
+    <p class="col-6">HDU</p>
+    <div class="col-6">
+      {{> switch}}
+    </div>
+  </div>
+  <div class="row align-items-center update-contact">
+    <p class="col-6">Contact</p>
+    <input class="col-5" type="text">
+  </div>
+  <div class="row mt-4">
+    <div class="col-4"></div>
+    <button class="update-submit-button col-4">SUBMIT</button>
+    <div class="col-4"></div>
+  </div>
+  <div class="row">
+    <div class="col-12 text-center">
+      <p class="update-message"></p>
+    </div>
+  </div>
 </div>
