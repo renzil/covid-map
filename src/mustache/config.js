@@ -1,4 +1,5 @@
 const GOOGLE_CLOUD_API_KEY = process.env.GOOGLE_CLOUD_API_KEY;
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 const GOOGLE_SHEETS_SPREADSHEET_ID = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
 const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
 const FIREBASE_AUTH_DOMAIN = process.env.FIREBASE_AUTH_DOMAIN;
@@ -12,7 +13,7 @@ const FIREBASE_MEASUREMENT_ID = process.env.FIREBASE_MEASUREMENT_ID;
 module.exports = {
   "ogtags": false,
   "favicons": false,
-  "fonts": false,
+  "fonts": true,
   "firebase": {
     "apiKey": FIREBASE_API_KEY,
     "authDomain": FIREBASE_AUTH_DOMAIN,
@@ -25,6 +26,9 @@ module.exports = {
   },
   "googleCloud": {
     "apiKey": GOOGLE_CLOUD_API_KEY
+  },
+  "googleMaps": {
+    "apiKey": GOOGLE_MAPS_API_KEY
   },
   "googleSheets": {
     "spreadsheetId": GOOGLE_SHEETS_SPREADSHEET_ID,

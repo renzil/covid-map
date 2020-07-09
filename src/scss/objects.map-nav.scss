@@ -1,0 +1,13 @@
+.map-nav {
+  max-width: 600px;
+  margin: 0 auto;
+  a {
+    color: $default-theme-p-dark-font-color;
+    &.active {
+      color: $default-theme-action-font-color;
+      border-bottom: 4px solid $default-theme-action-font-color;
+      padding-bottom: 2px;
+      margin-bottom: 5px;
+    }
+  }
+}

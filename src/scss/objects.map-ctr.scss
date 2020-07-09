@@ -1,0 +1,15 @@
+.map-ctr {
+  margin: 0 auto;
+
+  p {
+    color: $default-theme-p-light-font-color;
+    font-size: 0.8rem;
+  }
+  #map {
+    width: 100%;
+    height: 56.25vw;
+    @media only screen and (orientation: landscape) {
+      max-height: .5625 * 800px;
+    }
+  }
+}
