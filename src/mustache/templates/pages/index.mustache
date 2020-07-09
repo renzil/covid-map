@@ -265,7 +265,7 @@
           $(".info-ctr").removeClass("d-none");
         }
 
-        function addMarker(map, position, placeId, name, contact, type, meta) {
+        function addMarker(map, position, placeId, name, contact, type, meta, addressKey) {
           var marker = new google.maps.Marker({
             map: map,
             position: position,
@@ -275,6 +275,19 @@
           });
           mapMarkers.push(marker);
           marker.addListener("click", onMarkerClick);
+          firebase.database().ref('metadata/'+addressKey).on('value', function(snapshot) {
+            if (snapshot.exists()) {
+              var data = snapshot.val();
+              marker.customData.contact = data.contact;
+              marker.customData.info = data.info;
+              var tabName = $(".map-nav-link.active").attr("data-name");
+              if (marker.customData.type === "hospital" && (tabName === "ventilator" || tabName === "icu" || tabName === "hdu")) {
+                marker.setIcon(getMarkerUrl((marker.customData.info === undefined || marker.customData.info[tabName] === undefined) ? MARKER_UNKNOWN_ICON : (
+                  marker.customData.info[tabName] ? MARKER_AVAILABLE_ICON : MARKER_UNAVAILABLE_ICON)
+                ));
+              }
+            }
+          });
         }
 
         function addMetadata(geocoder, map, database, address, name, contact, type) {
@@ -291,7 +304,7 @@
                 info: data.info,
                 contact: contact
               }
-              addMarker(map, {lat: Number(data.lat), lng: Number(data.lng)}, data.placeId, name, contact, type, meta);
+              addMarker(map, {lat: Number(data.lat), lng: Number(data.lng)}, data.placeId, name, contact, type, meta, addressKey);
             } else {
               geocoder.geocode( { 'address': fullAddress}, function(results, status) {
                 if (status === 'OK') {
@@ -316,7 +329,7 @@
                     },
                     contact: contact
                   };
-                  addMarker(map, results[0].geometry.location, results[0].place_id, name, contact, type, meta);
+                  addMarker(map, results[0].geometry.location, results[0].place_id, name, contact, type, meta, addressKey);
                 } else {
                   console.error("Geocode was not successful for the following reason: " + status);
                 }
