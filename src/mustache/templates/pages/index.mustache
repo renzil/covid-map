@@ -116,6 +116,7 @@
           });
           if (minDistMarker) {
             onLoadMarkerInfo(minDistMarker);
+            loadMapTabView("all");
           }
         }
 
@@ -254,16 +255,19 @@
           return document.location.origin + path;
         }
 
-        function onMapNavLinkClick(event) {
-          event.preventDefault();
+        function loadMapTabView(tabName) {
           $(".map-nav-link").removeClass("active");
-          $(this).addClass("active");
-          var tabName = $(this).attr("data-name");
+          $(".map-nav-link[data-name=\""+tabName+"\"]").addClass("active");
           switch(tabName) {
             case "all": showAllMarkers(); break;
             case "lab": showLabMarkers(); break;
             default: showHospitalAvailabilityMarkers(tabName);
           }
+        }
+
+        function onMapNavLinkClick(event) {
+          event.preventDefault();
+          loadMapTabView($(this).attr("data-name"));
         }
 
         function showAllMarkers() {
@@ -405,7 +409,8 @@
                 var map = new google.maps.Map(document.getElementById("map"), {
                   zoom: 11,
                   center: cityCenter,
-                  disableDefaultUI: true
+                  disableDefaultUI: true,
+                  zoomControl: true
                 });
                 sheet.data.forEach(function(gridData) {
                   gridData.rowData.forEach(function(row, index) {
