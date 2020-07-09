@@ -95,13 +95,65 @@
           });
           $(".city-url").on("click", onCityClick);
         }
-        
+
+        function onFindNearest(position, type) {
+          var minDistMarker = null;
+          var minDist = Number.MAX_SAFE_INTEGER;
+          mapMarkers.forEach(function(marker) {
+            if (marker.customData.type !== type) {
+              return;
+            }
+            var markerPos = marker.getPosition();
+            var dist_lat = markerPos.lat() - position.coords.latitude;
+            dist_lat *= dist_lat;
+            var dist_lng = markerPos.lng() - position.coords.longitude;
+            dist_lng *= dist_lng;
+            var dist = dist_lat + dist_lng;
+            if (dist < minDist) {
+              minDistMarker = marker;
+              minDist = dist;
+            }
+          });
+          if (minDistMarker) {
+            onLoadMarkerInfo(minDistMarker);
+          }
+        }
+
+        function onFindTestCenterSuccess(position) {
+          onFindNearest(position, "lab");
+        }
+
+        function onFindHospitalSuccess(position) {
+          onFindNearest(position, "hospital");
+        }
+
+        function onGeolocationError() {
+          console.log("Unable to get location");
+        }
+
+        function onFindTestCenterClick(event) {
+          if (navigator.geolocation) {
+            event.preventDefault();
+            navigator.geolocation.getCurrentPosition(onFindTestCenterSuccess, onGeolocationError);
+          }
+        }
+
+        function onFindHospitalClick(event) {
+          if (navigator.geolocation) {
+            event.preventDefault();
+            navigator.geolocation.getCurrentPosition(onFindHospitalSuccess, onGeolocationError);
+          }
+        }
+
         function initCityScreen(cityName) {
           if (isMapAPILoaded) {
             $(".navbar-brand").attr("href", "/"+cityName);
             $(".navbar-title").text(toTitleCase(cityName));
 
             $(".map-nav-link").on("click", onMapNavLinkClick);
+
+            $(".help-answer-test-center").on("click", onFindTestCenterClick);
+            $(".help-answer-hospital").on("click", onFindHospitalClick);
 
             initMapForCity(cityName);
           }
@@ -245,8 +297,7 @@
           });
         }
 
-        function onMarkerClick(event) {
-          var marker = $(this).get(0);
+        function onLoadMarkerInfo(marker) {
           var map = marker.getMap();
           map.setZoom(15);
           map.setCenter(marker.getPosition());
@@ -265,7 +316,11 @@
           $(".info-ctr").removeClass("d-none");
         }
 
-        function addMarker(map, position, placeId, name, contact, type, meta) {
+        function onMarkerClick(event) {
+          onShowMarker($(this).get(0));
+        }
+
+        function addMarker(map, position, placeId, name, contact, type, meta, addressKey) {
           var marker = new google.maps.Marker({
             map: map,
             position: position,
@@ -275,6 +330,19 @@
           });
           mapMarkers.push(marker);
           marker.addListener("click", onMarkerClick);
+          firebase.database().ref('metadata/'+addressKey).on('value', function(snapshot) {
+            if (snapshot.exists()) {
+              var data = snapshot.val();
+              marker.customData.contact = data.contact;
+              marker.customData.info = data.info;
+              var tabName = $(".map-nav-link.active").attr("data-name");
+              if (marker.customData.type === "hospital" && (tabName === "ventilator" || tabName === "icu" || tabName === "hdu")) {
+                marker.setIcon(getMarkerUrl((marker.customData.info === undefined || marker.customData.info[tabName] === undefined) ? MARKER_UNKNOWN_ICON : (
+                  marker.customData.info[tabName] ? MARKER_AVAILABLE_ICON : MARKER_UNAVAILABLE_ICON)
+                ));
+              }
+            }
+          });
         }
 
         function addMetadata(geocoder, map, database, address, name, contact, type) {
@@ -291,7 +359,7 @@
                 info: data.info,
                 contact: contact
               }
-              addMarker(map, {lat: Number(data.lat), lng: Number(data.lng)}, data.placeId, name, contact, type, meta);
+              addMarker(map, {lat: Number(data.lat), lng: Number(data.lng)}, data.placeId, name, contact, type, meta, addressKey);
             } else {
               geocoder.geocode( { 'address': fullAddress}, function(results, status) {
                 if (status === 'OK') {
@@ -316,7 +384,7 @@
                     },
                     contact: contact
                   };
-                  addMarker(map, results[0].geometry.location, results[0].place_id, name, contact, type, meta);
+                  addMarker(map, results[0].geometry.location, results[0].place_id, name, contact, type, meta, addressKey);
                 } else {
                   console.error("Geocode was not successful for the following reason: " + status);
                 }
