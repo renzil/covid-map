@@ -95,13 +95,65 @@
           });
           $(".city-url").on("click", onCityClick);
         }
-        
+
+        function onFindNearest(position, type) {
+          var minDistMarker = null;
+          var minDist = Number.MAX_SAFE_INTEGER;
+          mapMarkers.forEach(function(marker) {
+            if (marker.customData.type !== type) {
+              return;
+            }
+            var markerPos = marker.getPosition();
+            var dist_lat = markerPos.lat() - position.coords.latitude;
+            dist_lat *= dist_lat;
+            var dist_lng = markerPos.lng() - position.coords.longitude;
+            dist_lng *= dist_lng;
+            var dist = dist_lat + dist_lng;
+            if (dist < minDist) {
+              minDistMarker = marker;
+              minDist = dist;
+            }
+          });
+          if (minDistMarker) {
+            onLoadMarkerInfo(minDistMarker);
+          }
+        }
+
+        function onFindTestCenterSuccess(position) {
+          onFindNearest(position, "lab");
+        }
+
+        function onFindHospitalSuccess(position) {
+          onFindNearest(position, "hospital");
+        }
+
+        function onGeolocationError() {
+          console.log("Unable to get location");
+        }
+
+        function onFindTestCenterClick(event) {
+          if (navigator.geolocation) {
+            event.preventDefault();
+            navigator.geolocation.getCurrentPosition(onFindTestCenterSuccess, onGeolocationError);
+          }
+        }
+
+        function onFindHospitalClick(event) {
+          if (navigator.geolocation) {
+            event.preventDefault();
+            navigator.geolocation.getCurrentPosition(onFindHospitalSuccess, onGeolocationError);
+          }
+        }
+
         function initCityScreen(cityName) {
           if (isMapAPILoaded) {
             $(".navbar-brand").attr("href", "/"+cityName);
             $(".navbar-title").text(toTitleCase(cityName));
 
             $(".map-nav-link").on("click", onMapNavLinkClick);
+
+            $(".help-answer-test-center").on("click", onFindTestCenterClick);
+            $(".help-answer-hospital").on("click", onFindHospitalClick);
 
             initMapForCity(cityName);
           }
@@ -245,8 +297,7 @@
           });
         }
 
-        function onMarkerClick(event) {
-          var marker = $(this).get(0);
+        function onLoadMarkerInfo(marker) {
           var map = marker.getMap();
           map.setZoom(15);
           map.setCenter(marker.getPosition());
@@ -263,6 +314,10 @@
           }
           
           $(".info-ctr").removeClass("d-none");
+        }
+
+        function onMarkerClick(event) {
+          onShowMarker($(this).get(0));
         }
 
         function addMarker(map, position, placeId, name, contact, type, meta, addressKey) {
