@@ -16,7 +16,7 @@
     "assets-download": "nwget $PUBLIC_ASSETS_URL -O dist/assets.zip",
     "assets-unzip": "decompress dist/assets.zip --out-dir=dist/",
     "watch-dist": "live-server dist --no-browser",
-    "watch-dist-spa": "node ./node_modules/browser-sync/dist/bin.js start --server --no-open --single --watch --serveStatic 'dist' --files 'dist'",
+    "watch-dist-spa": "node ./node_modules/browser-sync/dist/bin.js start --server --no-open --single --serveStatic 'dist' --files 'dist'",
     "watch-html": "nodemon --watch src/mustache --ext '*' --exec \"npm run build-html\"",
     "watch-scss": "nodemon --watch src/scss/ --ext scss --exec \"npm run build-css\"",
     "watch-js": "nodemon --watch src/js/ --ext js --exec \"npm run build-js\"",

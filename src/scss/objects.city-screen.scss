@@ -1,0 +1,7 @@
+.city-screen {
+  width: 100%;
+  @media only screen and (orientation: landscape) {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+}
