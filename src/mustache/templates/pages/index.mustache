@@ -63,6 +63,13 @@
 
         var database = firebase.database();
         
+        function isDevEnvironment() {
+          if (document.location.hostname === "localhost" || document.location.hostname === "127.0.0.1") {
+            return true;
+          }
+          var subdomain = document.location.hostname.replace("hospitaltracker.in", "");
+          return subdomain === "stage" ? true : false;
+        }
         function getQueryParams() {
           return JSON.parse('{"' + location.search.substring(1).replace(/&/g, '","').replace(/=/g,'":"') + '"}', function(key, value) { return key===""?value:decodeURIComponent(value) });
         }
@@ -281,9 +288,15 @@
           mapMarkers.forEach(function(marker) {
             if (marker.customData.type === "hospital") {
               marker.setVisible(true);
-              marker.setIcon(getMarkerUrl((marker.customData.info === undefined || marker.customData.info[category] === undefined) ? MARKER_UNKNOWN_ICON : (
-                marker.customData.info[category] ? MARKER_AVAILABLE_ICON : MARKER_UNAVAILABLE_ICON)
-              ));
+              if (marker.customData.info === undefined || marker.customData.info[category] === undefined) {
+                if (isDevEnvironment()) {
+                  marker.setIcon(getMarkerUrl(Math.round(Math.random()) ? MARKER_AVAILABLE_ICON : MARKER_UNAVAILABLE_ICON));
+                } else {
+                  marker.setIcon(getMarkerUrl(MARKER_UNKNOWN_ICON));
+                }
+              } else {
+                marker.setIcon(marker.customData.info[category] ? MARKER_AVAILABLE_ICON : MARKER_UNAVAILABLE_ICON);
+              }
             } else {
               marker.setVisible(false);
             }
@@ -423,6 +436,13 @@
                       var address = row.values[1].effectiveValue ? row.values[1].effectiveValue.stringValue : "";
                       var contact = row.values[2].effectiveValue ? row.values[2].effectiveValue.stringValue : "";
                       var type = row.values[3].effectiveValue ? row.values[3].effectiveValue.stringValue : "hospital";
+
+                      if (type === "test") {
+                        if (!isDevEnvironment()) {
+                          return;
+                        }
+                        type = "hospital";
+                      }
                       addMetadata(geocoder, map, database, address, name, contact, type);
                       
                       console.log(name + " " + address + " " + contact + " " + type);
