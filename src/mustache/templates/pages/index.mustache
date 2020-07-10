@@ -68,7 +68,7 @@
             return true;
           }
           var subdomain = document.location.hostname.replace("hospitaltracker.in", "");
-          return subdomain === "stage" ? true : false;
+          return subdomain === "stage." ? true : false;
         }
         function getQueryParams() {
           return JSON.parse('{"' + location.search.substring(1).replace(/&/g, '","').replace(/=/g,'":"') + '"}', function(key, value) { return key===""?value:decodeURIComponent(value) });
