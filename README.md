@@ -1,5 +1,5 @@
 # Intro
-COVID map of hospital beds available in Bangalore city.
+COVID map of hospital beds available in Bangalore city. To contribute, please join our Slack channel at https://join.slack.com/t/hospitaltrackerin/shared_invite/zt-g2w4l8yo-e9YmsmSrEoLdBqTT2xDMqg
 
 # Prerequisites
 Google Cloud API Key with access to Maps JavaScript API, Google Sheets API and Geocoding API.
