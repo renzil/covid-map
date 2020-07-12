@@ -1,6 +1,10 @@
 # Intro
 COVID map of hospital beds available in Bangalore city.
 
+To contribute, please join our Slack channel at https://join.slack.com/t/hospitaltrackerin/shared_invite/zt-g2w4l8yo-e9YmsmSrEoLdBqTT2xDMqg
+
+Please push all code changes into a new branch, and create a PR for merging to stage. Code will need to be approved by at least 1 code owner before being merged to stage. Merges into master will be done from stage only.
+
 # Prerequisites
 Google Cloud API Key with access to Maps JavaScript API, Google Sheets API and Geocoding API.
 
