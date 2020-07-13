@@ -210,7 +210,11 @@
         }
 
         function loadSpreadsheet() {
-          $.get("https://sheets.googleapis.com/v4/spreadsheets/{{{googleSheets.spreadsheetId}}}?key={{{googleCloud.apiKey}}}&includeGridData=true", function (result) {
+          var spreadsheetId = "{{{googleSheets.stageSpreadsheetId}}}";
+          if (!isDevEnvironment()) {
+            spreadsheetId = "{{{googleSheets.prodSpreadsheetId}}}";
+          }
+          $.get("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + "?key={{{googleCloud.apiKey}}}&includeGridData=true", function (result) {
             spreadsheet = result;
             spreadsheet.sheets.forEach(function(sheet) {
               if (sheet.properties.title === "cities") {
