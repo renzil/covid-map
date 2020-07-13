@@ -62,6 +62,8 @@
         var MARKER_UNAVAILABLE_ICON = "/assets/icons/markers/unavailable.png";
 
         var database = firebase.database();
+        var spreadsheet = null;
+        var cities = {};
         
         function isDevEnvironment() {
           if (document.location.hostname === "localhost" || document.location.hostname === "127.0.0.1") {
@@ -90,15 +92,15 @@
         }
 
         function initHomeScreen() {
-          var cities = ["Bengaluru"];
-          
           $(".navbar-brand").attr("href", "/");
           $(".navbar-title").text("Hospital Tracker");
           
           $(".city-url").off("click", onCityClick);
           $(".cities-ctr").empty();
-          cities.forEach(function(city) {
-            $(".cities-ctr").append("<a class=\"city-url\" href=\"/" + city.toLowerCase() + "\" data-city=\"" + city.toLowerCase() + "\">" + city + "<\a>");
+
+          Object.keys(cities).forEach(function(cityKey) {
+            var cityName = cities[cityKey].name;
+            $(".cities-ctr").append("<a class=\"city-url\" href=\"/" + cityName + "\" data-city=\"" + cityName + "\">" + toTitleCase(cityName) + "<\a>");
           });
           $(".city-url").on("click", onCityClick);
         }
@@ -207,8 +209,55 @@
           });
         }
 
+        function loadSpreadsheet() {
+          var spreadsheetId = "{{{googleSheets.stageSpreadsheetId}}}";
+          if (!isDevEnvironment()) {
+            spreadsheetId = "{{{googleSheets.prodSpreadsheetId}}}";
+          }
+          $.get("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + "?key={{{googleCloud.apiKey}}}&includeGridData=true", function (result) {
+            spreadsheet = result;
+            spreadsheet.sheets.forEach(function(sheet) {
+              if (sheet.properties.title === "cities") {
+                sheet.data.forEach(function(gridData) {
+                  gridData.rowData.forEach(function(row, index) {
+                    if (index < 2) { // header and blank line in spreadsheet
+                      return;
+                    }
+
+                    try {
+                      var name = row.values[0].effectiveValue ? row.values[0].effectiveValue.stringValue : "";
+                      var lat = row.values[1].effectiveValue ? row.values[1].effectiveValue.numberValue : 0;
+                      var lng = row.values[2].effectiveValue ? row.values[2].effectiveValue.numberValue : 0;
+                      var production = row.values[3].effectiveValue ? row.values[3].effectiveValue.stringValue : "no";
+
+                      if (name === "") {
+                        return;
+                      }
+                      if (production === "no") {
+                        if (!isDevEnvironment()) {
+                          return;
+                        }
+                      }
+                      cities[name] =  {name: name, lat: lat, lng: lng};
+                    } catch(err) {
+                      console.error(err);
+                    }
+                  });
+                });
+              }
+            });
+            reloadUI();
+          });
+        }
+
         function reloadUI() {
           hideAllUI();
+
+          if (!spreadsheet) {
+            loadSpreadsheet();
+            return;
+          }
+
           var path = window.location.pathname.replace("/", "");
           
           if (path === "") {
@@ -411,48 +460,46 @@
         }
 
         function initMapForCity(cityName) {
-          $.get("https://sheets.googleapis.com/v4/spreadsheets/{{{googleSheets.spreadsheetId}}}?key={{{googleCloud.apiKey}}}&includeGridData=true", function (spreadheet) {
-            spreadheet.sheets.forEach(function(sheet) {
-              if (sheet.properties.title === cityName) {
-                var cityCenter = { // defaults for Bangalore
-                  lat: 12.9539974,
-                  lng: 77.6309395
-                };
-                var geocoder = new google.maps.Geocoder();
-                var map = new google.maps.Map(document.getElementById("map"), {
-                  zoom: 11,
-                  center: cityCenter,
-                  disableDefaultUI: true,
-                  zoomControl: true
-                });
-                sheet.data.forEach(function(gridData) {
-                  gridData.rowData.forEach(function(row, index) {
-                    if (index < 2) { // header and blank line in spreadsheet
-                      return;
-                    }
+          spreadsheet.sheets.forEach(function(sheet) {
+            if (sheet.properties.title === cityName) {
+              var cityCenter = {
+                lat: cities[cityName].lat,
+                lng: cities[cityName].lng
+              };
+              var geocoder = new google.maps.Geocoder();
+              var map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 11,
+                center: cityCenter,
+                disableDefaultUI: true,
+                zoomControl: true
+              });
+              sheet.data.forEach(function(gridData) {
+                gridData.rowData.forEach(function(row, index) {
+                  if (index < 2) { // header and blank line in spreadsheet
+                    return;
+                  }
 
-                    try {
-                      var name = row.values[0].effectiveValue ? row.values[0].effectiveValue.stringValue : "";
-                      var address = row.values[1].effectiveValue ? row.values[1].effectiveValue.stringValue : "";
-                      var contact = row.values[2].effectiveValue ? row.values[2].effectiveValue.stringValue : "";
-                      var type = row.values[3].effectiveValue ? row.values[3].effectiveValue.stringValue : "hospital";
+                  try {
+                    var name = row.values[0].effectiveValue ? row.values[0].effectiveValue.stringValue : "";
+                    var address = row.values[1].effectiveValue ? row.values[1].effectiveValue.stringValue : "";
+                    var contact = row.values[2].effectiveValue ? (row.values[2].effectiveValue.stringValue ? row.values[2].effectiveValue.stringValue : (row.values[2].effectiveValue.numberValue ? String(row.values[2].effectiveValue.numberValue) : "")) : "";
+                    var type = row.values[3].effectiveValue ? row.values[3].effectiveValue.stringValue : "hospital";
 
-                      if (type === "test") {
-                        if (!isDevEnvironment()) {
-                          return;
-                        }
-                        type = "hospital";
+                    if (type === "test") {
+                      if (!isDevEnvironment()) {
+                        return;
                       }
-                      addMetadata(geocoder, map, database, address, name, contact, type);
-                      
-                      console.log(name + " " + address + " " + contact + " " + type);
-                    } catch(err) {
-                      console.error(err);
+                      type = "hospital";
                     }
-                  });
+                    addMetadata(geocoder, map, database, address, name, contact, type);
+                    
+                    console.log(name + " " + address + " " + contact + " " + type);
+                  } catch(err) {
+                    console.error(err);
+                  }
                 });
-              }
-            });
+              });
+            }
           });
         }
 
