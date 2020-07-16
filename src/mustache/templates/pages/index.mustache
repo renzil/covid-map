@@ -226,8 +226,8 @@
 
                     try {
                       var name = row.values[0].effectiveValue ? row.values[0].effectiveValue.stringValue : "";
-                      var lat = row.values[1].effectiveValue ? row.values[1].effectiveValue.numberValue : 0;
-                      var lng = row.values[2].effectiveValue ? row.values[2].effectiveValue.numberValue : 0;
+                      var lat = row.values[1].effectiveValue ? (row.values[1].effectiveValue.numberValue ? row.values[1].effectiveValue.numberValue : (row.values[1].effectiveValue.stringValue ? Number(row.values[1].effectiveValue.stringValue) : 0)) : 0;
+                      var lng = row.values[2].effectiveValue ? (row.values[2].effectiveValue.numberValue ? row.values[2].effectiveValue.numberValue : (row.values[2].effectiveValue.stringValue ? Number(row.values[2].effectiveValue.stringValue) : 0)) : 0;
                       var production = row.values[3].effectiveValue ? row.values[3].effectiveValue.stringValue : "no";
 
                       if (name === "") {
