@@ -36,7 +36,7 @@
   "homepage": "https://github.com/renzil/covid-map#readme",
   "devDependencies": {
     "bootstrap": "^4.5.0",
-    "browser-sync": "^2.26.7",
+    "browser-sync": "^2.27.10",
     "decompress-cli": "^2.0.0",
     "jquery": "^3.5.1",
     "live-server": "^1.2.1",
